@@ -1,0 +1,27 @@
+
+### .gitignore
+
+```plaintext
+# Ignorar arquivos de bytecode do Python
+__pycache__/
+*.py[cod]
+
+# Ignorar arquivos de log
+*.log
+
+# Ignorar arquivos temporários do sistema
+*.tmp
+*.temp
+
+# Ignorar arquivos de cache
+*.cache
+
+# Ignorar imagens geradas
+*.png
+*.jpg
+*.jpeg
+*.gif
+
+# Ignorar ambientes virtuais
+env/
+venv/
