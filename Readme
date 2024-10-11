@@ -1,0 +1,38 @@
+Enunciado
+Flappy Morcego - Jogo de Aventura na Caverna
+
+O "Flappy Morcego" é um jogo de arcade onde o jogador controla um morcego que deve navegar por um ambiente de caverna cheio de estalactites. O objetivo é evitar as estalactites e coletar pontos enquanto o morcego sobe e desce. O jogo utiliza a biblioteca Pygame e permite aos jogadores testarem suas habilidades de coordenação e tempo de reação.
+
+Requisitos do Jogo:
+
+O morcego deve subir quando a tecla de espaço for pressionada.
+O jogo termina quando o morcego colide com uma estalactite ou sai da tela.
+O jogador deve tentar acumular o maior número de pontos possível ao evitar as estalactites.
+O jogo deve incluir uma tela inicial com instruções e uma tela de game over.
+README
+markdown
+Copiar código
+# Flappy Morcego
+
+Flappy Morcego é um jogo de arcade desenvolvido em Python utilizando a biblioteca Pygame. O jogador controla um morcego que deve voar através de um ambiente de caverna, evitando estalactites.
+
+## Funcionalidades
+
+- Controle do morcego: pressione a tecla de espaço para fazer o morcego subir.
+- Colisões: o jogo termina se o morcego colidir com uma estalactite ou sair da tela.
+- Pontuação: o jogador ganha pontos ao passar pelas estalactites sem colidir.
+- Tela de instruções e tela de game over.
+
+## Tecnologias Utilizadas
+
+- Python
+- Pygame
+- PIL (Pillow) para manipulação de imagens
+
+## Como Executar o Jogo
+
+1. Certifique-se de que o Python está instalado em sua máquina.
+2. Instale as dependências necessárias:
+
+   ```bash
+   pip install pygame Pillow
