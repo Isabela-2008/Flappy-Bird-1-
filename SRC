@@ -1,0 +1,217 @@
+import pygame
+import random
+from PIL import Image
+
+# Inicializando o Pygame
+pygame.init()
+pygame.font.init()  # Adicionando inicialização das fontes
+
+# Definindo as cores
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+
+# Dimensões da janela
+WIDTH = 400
+HEIGHT = 600
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption('Flappy Morcego')
+
+# Definindo o FPS (frames por segundo)
+FPS = 60
+clock = pygame.time.Clock()
+
+# Definindo as variáveis do jogo
+morcego_width = 40  # Largura original do morcego
+morcego_height = 30  # Altura original do morcego
+morcego_x = 50
+morcego_y = HEIGHT // 2
+morcego_velocity = 0
+gravity = 0.5
+jump = -10
+
+estalactite_width = 80  # Largura da estalactite
+estalactite_gap = 180  # Distância entre as estalactites (ajustado para aumentar a dificuldade)
+estalactite_velocity = -4
+
+score = 0
+game_over = False
+game_started = False  # Controla se o jogo já foi iniciado
+
+# Nova largura e altura para redimensionar o GIF
+new_morcego_width = 80  # Aumentando a largura do morcego
+new_morcego_height = 80  # Aumentando a altura do morcego
+
+# Carregando a imagem de fundo
+background_image_path = r'C:/Users/Aluno06/Downloads/caverna.jpg'  # Atualize para o caminho da sua imagem de fundo
+background_image = pygame.image.load(background_image_path)
+background_image = pygame.transform.scale(background_image, (WIDTH, HEIGHT))  # Redimensiona a imagem para se ajustar à tela
+
+# Carregando a imagem da estalactite
+estalactite_image_path = r'C:/Users/Aluno06/Downloads/70b2d8f6-9875-434c-b644-38ed7cf74a42-removebg-preview.png'  # Atualize para o caminho da sua imagem de estalactite
+estalactite_image = pygame.image.load(estalactite_image_path)
+estalactite_image = pygame.transform.scale(estalactite_image, (estalactite_width, HEIGHT))  # Redimensiona a imagem para a largura da estalactite
+
+# Função para carregar os quadros do GIF e rotacioná-lo
+def load_gif_frames(gif_path, max_frames=5):
+    image = Image.open(gif_path)
+    frames = []
+    frame_count = 0
+    try:
+        while True and frame_count < max_frames:
+            frame = image.copy()
+            frame = frame.convert("RGBA")
+            
+            # Girar o frame 70 graus para a direita
+            frame = frame.rotate(-70, expand=True)
+            
+            # Convertendo o frame para superfície do pygame
+            frame_surface = pygame.image.fromstring(frame.tobytes(), frame.size, frame.mode)
+            frame_surface = pygame.transform.scale(frame_surface, (new_morcego_width, new_morcego_height))
+            frames.append(frame_surface)
+            
+            image.seek(image.tell() + 1)  # Próximo frame do GIF
+            frame_count += 1
+    except EOFError:
+        pass  # Fim do GIF
+    return frames
+
+# Caminho para o GIF do morcego
+morcego_gif_path = r'C:/Users/Aluno06/Downloads/bats-derpy.gif'  # Atualize para o nome correto do seu GIF
+morcego_frames = load_gif_frames(morcego_gif_path)
+current_frame = 0
+frame_count = len(morcego_frames)
+
+# Variáveis para controlar a animação do morcego
+frame_time = 0  # Tempo desde o último quadro
+frame_delay = 150  # Atraso em milissegundos entre os quadros (aumente para desacelerar)
+
+# Função para gerar novas estalactites
+def create_estalactite():
+    estalactite_height = random.randint(100, HEIGHT - estalactite_gap - 100)  # Ajuste a altura mínima da estalactite para 100
+    estalactite = {'x': WIDTH, 'height': estalactite_height}
+    return estalactite
+
+# Função para desenhar o morcego
+def draw_morcego():
+    global current_frame, frame_time
+    screen.blit(morcego_frames[current_frame], (morcego_x, morcego_y))  # Desenhar a imagem do morcego
+    frame_time += clock.get_time()  # Acumula o tempo passado desde o último quadro
+    if frame_time >= frame_delay:  # Verifica se é hora de trocar o quadro
+        current_frame = (current_frame + 1) % frame_count  # Atualiza o quadro atual
+        frame_time = 0  # Reinicia o tempo acumulado
+
+# Função para desenhar as estalactites
+def draw_estalactite(estalactite):
+    # Desenha a imagem da estalactite superior
+    screen.blit(estalactite_image, (estalactite['x'], 0), (0, 0, estalactite_width, estalactite['height']))
+    # Desenha a imagem da estalactite inferior
+    screen.blit(estalactite_image, (estalactite['x'], estalactite['height'] + estalactite_gap), (0, estalactite['height'], estalactite_width, HEIGHT))
+
+# Função para verificar colisão
+def check_collision(estalactite):
+    # Verifica se o morcego está colidindo com as estalactites
+    if (morcego_x + new_morcego_width > estalactite['x'] and morcego_x < estalactite['x'] + estalactite_width):
+        if (morcego_y < estalactite['height'] or morcego_y + new_morcego_height > estalactite['height'] + estalactite_gap):
+            return True  # Colisão com as estalactites
+    # Verifica se o morcego saiu da tela
+    if morcego_y < 0 or morcego_y + new_morcego_height > HEIGHT:
+        return True  # Colisão com o topo ou a parte inferior da tela
+    return False
+
+# Função para exibir as instruções iniciais
+def show_instructions():
+    screen.fill(WHITE)
+    font = pygame.font.SysFont(None, 50)
+    title_text = font.render('Flappy Morcego', True, BLACK)
+    screen.blit(title_text, [WIDTH // 4, HEIGHT // 4])
+
+    font = pygame.font.SysFont(None, 35)
+    instructions_text1 = font.render('Press SPACE to jump', True, BLACK)
+    instructions_text2 = font.render('Avoid the estalactites', True, BLACK)
+    instructions_text3 = font.render('Press ENTER to start', True, BLACK)
+    screen.blit(instructions_text1, [WIDTH // 6, HEIGHT // 2])
+    screen.blit(instructions_text2, [WIDTH // 4, HEIGHT // 2 + 40])
+    screen.blit(instructions_text3, [WIDTH // 5, HEIGHT // 2 + 80])
+
+    pygame.display.update()
+
+# Função principal do jogo
+def game():
+    global morcego_y, morcego_velocity, score, game_over, game_started
+
+    estalactites = [create_estalactite()]
+
+    # Exibir a tela de instruções antes do jogo começar
+    while not game_started:
+        show_instructions()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:
+                    game_started = True  # Inicia o jogo quando ENTER é pressionado
+
+    while True:
+        screen.blit(background_image, (0, 0))  # Desenha o fundo
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE and not game_over:
+                    morcego_velocity = jump  # Faz o morcego subir ao pressionar espaço
+                if event.key == pygame.K_r and game_over:
+                    game_over = False
+                    morcego_y = HEIGHT // 2
+                    morcego_velocity = 0
+                    estalactites.clear()
+                    estalactites.append(create_estalactite())
+                    score = 0
+
+        if not game_over:
+            morcego_velocity += gravity
+            morcego_y += morcego_velocity
+            
+            # Limite para o movimento do morcego
+            if morcego_y < 0:
+                morcego_y = 0
+            elif morcego_y + new_morcego_height > HEIGHT:
+                morcego_y = HEIGHT - new_morcego_height  # Impede que o morcego saia pela parte inferior
+
+            for estalactite in estalactites:
+                estalactite['x'] += estalactite_velocity
+                if estalactite['x'] < -estalactite_width:
+                    estalactites.remove(estalactite)
+                    score += 1  # Incrementa a pontuação quando uma estalactite é ultrapassada
+                if check_collision(estalactite):
+                    game_over = True
+
+            # Criação de novas estalactites
+            if len(estalactites) < 1:
+                estalactites.append(create_estalactite())
+
+            # Desenhar morcego e estalactites
+            draw_morcego()
+            for estalactite in estalactites:
+                draw_estalactite(estalactite)
+
+            # Exibir a pontuação
+            font = pygame.font.SysFont(None, 35)
+            score_text = font.render(f'Score: {score}', True, BLACK)
+            screen.blit(score_text, (10, 10))
+
+        else:
+            # Tela de Game Over
+            font = pygame.font.SysFont(None, 50)
+            game_over_text = font.render('Game Over!', True, BLACK)
+            screen.blit(game_over_text, [WIDTH // 4, HEIGHT // 4])
+            restart_text = font.render('Press R to Restart', True, BLACK)
+            screen.blit(restart_text, [WIDTH // 6, HEIGHT // 2 + 50])
+
+        pygame.display.update()
+        clock.tick(FPS)
+
+# Iniciando o jogo
+game()
